@@ -2,7 +2,7 @@
 #       IMPORT 
 #-----------------------------
 from Bio import SeqIO
-
+from Bio import SearchIO
 
 #==================== Class =====================================#
 class Fasta:
@@ -46,6 +46,7 @@ class Fasta:
                 continue
         return print("Sequences filtered !\n")
 
+
 #==================== MAIN =====================================#
 
 fasta = Fasta()
@@ -53,6 +54,7 @@ fasta.readFasta("data/multiFasta.fasta")
 fasta.meanLen()
 fasta.filterLen()
 fasta.writeFasta("data/filteredFasta.fasta")
+
 
 
 
