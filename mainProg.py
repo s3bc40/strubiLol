@@ -1,3 +1,9 @@
+#=======================
+#       Authors
+#       S. G.CLARO
+#       12/06/2018
+#=======================
+
 #-----------------------------
 #       IMPORT 
 #-----------------------------
@@ -6,6 +12,7 @@ from Bio import SearchIO
 from Bio.Seq import Seq
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from csv import DictWriter
+import pandas as pd
 #import hydroTest as hydro
 #==================== Class =====================================#
 class Fasta:
@@ -49,7 +56,51 @@ class Fasta:
     #             continue
     #     return print("Sequences filtered !\n")
 
+#=======================
+#       Module
+#=======================
+def computeProperties(sequences):
+    # Init table and vectors 
+    table = {}
+    listLeucine = []
+    listIsoLeu = []
+    listAromat = []
+    listIsoElec = []
+    listHelix = []
+    listTurn = []
+    listSheet = []
+    listHydro = []
+    cpt = 0
 
+    # Scale to compute hydrophobicity
+    hydroScales = {
+        "I":4.5,"F":2.8,"V":4.2,"L":3.8,"W":-0.9,"M":1.9,"A":1.8,"G":-0.4,
+        "C":2.5,"Y":-1.3,"P":-1.6,"T":-0.7,"S":-0.8,"H":-3.2,"N":-3.5,"E":-3.5,
+        "Q":-3.5,"D":-3.5,"K":-3.9,"R":-4.5,
+    } # https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/midas/hydrophob.html
+    for seqRec in sequences:
+        # Variables init
+        cpt += 1
+        sequence = str(seqRec.seq)
+        seqProt = ProteinAnalysis(sequence)
+        countAA = seqProt.get_amino_acids_percent() # for % of aa dictionnary
+        structFraction = seqProt.secondary_structure_fraction() # Helix, Turn, Sheet tuple
+
+        # Creating vectors for the table
+        listLeucine.append(countAA["L"])
+        listIsoLeu.append(countAA["I"])
+        listAromat.append(seqProt.aromaticity())
+        listIsoElec.append(seqProt.isoelectric_point())
+        listHelix.append(structFraction[0])
+        listTurn.append(structFraction[1])
+        listSheet.append(structFraction[2])
+        listHydro.append(seqProt.protein_scale(hydroScales,len(sequence),False)[0])
+
+    # Training dataset with labels
+    table = {"Class" : [True]*len(listAromat), "CountLeucine" : listLeucine,"CountIsoLeucine" : listIsoLeu,\
+    "Aromaticity" : listAromat,"Isoelectric" : listIsoElec,"Helix" : listHelix,\
+    "Turn": listTurn ,"Sheet" : listSheet ,"Hydrophobicity" : listHydro }
+    return table
 #==================== MAIN =====================================#
 
 # Read Fasta sequences
@@ -57,23 +108,14 @@ fasta = Fasta()
 fasta.readFasta("data/PSI_fasta.txt")
 print(len(fasta.sequences))
 # Protein analysis
-table = []
-cpt = 0
-hydroScales = {
-    "I":4.5,"F":2.8,"V":4.2,"L":3.8,"W":-0.9,"M":1.9,"A":1.8,"G":-0.4,
-    "C":2.5,"Y":-1.3,"P":-1.6,"T":-0.7,"S":-0.8,"H":-3.2,"N":-3.5,"E":-3.5,
-    "Q":-3.5,"D":-3.5,"K":-3.9,"R":-4.5,
-}
-for seqRec in fasta.sequences:
-    cpt += 1
-    sequence = str(seqRec.seq)
-    seqProt = ProteinAnalysis(sequence)
-    seqAtt = {"CountAA" : seqProt.count_amino_acids(),"Aromaticity" : seqProt.aromaticity(),\
-    "Isoelectric" : seqProt.isoelectric_point(), "StructureFraction" : seqProt.secondary_structure_fraction(), "Hydrophobicity" : seqProt.protein_scale(hydroScales,len(sequence)) }
-    table.append(seqAtt)
-print(len(table))
-print(table[3])
+properties = []
+properties = computeProperties(fasta.sequences)
+print(len(properties))
+# print(properties)
 
+# Write csv training dataset
+pd.DataFrame(properties).to_csv('data/trainData.csv', index=False)
+print('\nData Saved in csv format in data dir')
 
 # print(len(sequences))
 # print(len(sequences[0].seq))
