@@ -13,6 +13,9 @@ from Bio.Seq import Seq
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 from csv import DictWriter
 import pandas as pd
+from sklearn import svm
+
+
 #import hydroTest as hydro
 #==================== Class =====================================#
 class Fasta:
@@ -57,9 +60,10 @@ class Fasta:
     #     return print("Sequences filtered !\n")
 
 #=======================
-#       Module
+#       Functions
 #=======================
-def computeProperties(sequences):
+# Make properties for csv table
+def computeProperties(sequences,positive=True):
     # Init table and vectors 
     table = {}
     listLeucine = []
@@ -97,25 +101,52 @@ def computeProperties(sequences):
         listHydro.append(seqProt.protein_scale(hydroScales,len(sequence),False)[0])
 
     # Training dataset with labels
-    table = {"Class" : [True]*len(listAromat), "CountLeucine" : listLeucine,"CountIsoLeucine" : listIsoLeu,\
-    "Aromaticity" : listAromat,"Isoelectric" : listIsoElec,"Helix" : listHelix,\
-    "Turn": listTurn ,"Sheet" : listSheet ,"Hydrophobicity" : listHydro }
-    return table
+    if(positive == True):
+        table = {"Class" : [1]*len(listAromat), "CountLeucine" : listLeucine,"CountIsoLeucine" : listIsoLeu,\
+        "Aromaticity" : listAromat,"Isoelectric" : listIsoElec,"Helix" : listHelix,\
+        "Turn": listTurn ,"Sheet" : listSheet ,"Hydrophobicity" : listHydro }
+        return table
+    if(positive == False):
+        table = {"Class" : [0]*len(listAromat), "CountLeucine" : listLeucine,"CountIsoLeucine" : listIsoLeu,\
+        "Aromaticity" : listAromat,"Isoelectric" : listIsoElec,"Helix" : listHelix,\
+        "Turn": listTurn ,"Sheet" : listSheet ,"Hydrophobicity" : listHydro }
+        return table
+
+def computeSVM(df):
+    X = df.iloc[:, 1:].values
+    y = df.loc[:,"Class"].values
+    #print(X)
+    clf = svm.SVC(gamma='scale')
+    clf.fit(X, y)
+    return clf
 #==================== MAIN =====================================#
 
 # Read Fasta sequences
-fasta = Fasta()
-fasta.readFasta("data/PSI_fasta.txt")
-print(len(fasta.sequences))
+trueFasta = Fasta()
+falseFasta = Fasta()
+trueFasta.readFasta("data/PSI_fasta.txt")
+falseFasta.readFasta("data/ribbonBeta.fasta")
+print(len(falseFasta.sequences))
 # Protein analysis
 properties = []
-properties = computeProperties(fasta.sequences)
-print(len(properties))
+propertiesTrue = computeProperties(trueFasta.sequences)
+propertiesFalse = computeProperties(falseFasta.sequences, positive=False)
+print(len(propertiesFalse))
 # print(properties)
 
 # Write csv training dataset
-pd.DataFrame(properties).to_csv('data/trainData.csv', index=False)
+trueData = pd.DataFrame(propertiesTrue)
+falseData = pd.DataFrame(propertiesFalse)
+frames = [trueData,falseData]
+testData = pd.concat(frames)
+testData.to_csv('data/trainData.csv', index=False)
 print('\nData Saved in csv format in data dir')
+
+# Classifier
+clf = computeSVM(testData)
+print(clf.predict([[0.1383399209486166,0.08300395256916997,0.05533596837944664,5.59014892578125,0.33992094861660077,0.18181818181818182,0.37154150197628455,-0.026965230536659106]]))
+print(clf.predict([[0.017857142857142856,0.0,0.14285714285714285,4.93048095703125,0.1964285714285714,0.32142857142857145,0.17857142857142855,-0.5370134014039566]]))
+print(clf.predict([[0.022727272727272728,0.045454545454545456,0.2272727272727273,9.00665283203125,0.3181818181818182,0.22727272727272727,0.13636363636363635,-0.3977249224405377]]))
 
 # print(len(sequences))
 # print(len(sequences[0].seq))
