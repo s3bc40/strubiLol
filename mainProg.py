@@ -141,8 +141,8 @@ def computeSVM(df):
     clf = svm.SVC(kernel = "rbf",C=1, gamma=0.01)
 
     #Splitting the dataset in 4 different sets :
-    # - 2 for training (0.75)
-    # - 2 for testing (0.25)
+    # - 2 for training (0.60)
+    # - 2 for testing (0.40)
     
     for iterate in range(3):
         X_train, X_test, y_train, y_test = train_test_split( \
