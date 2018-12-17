@@ -11,9 +11,11 @@ from Bio import SeqIO
 from Bio import SearchIO
 from Bio.Seq import Seq
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
-from csv import DictWriter
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn import svm
+
+import plot_iris as plt_SVM
 
 
 #import hydroTest as hydro
@@ -86,6 +88,7 @@ def computeProperties(sequences,positive=True):
         # Variables init
         cpt += 1
         sequence = str(seqRec.seq)
+        sequence = sequence.replace("X","") # avoid X in properties'computing process 
         seqProt = ProteinAnalysis(sequence)
         countAA = seqProt.get_amino_acids_percent() # for % of aa dictionnary
         structFraction = seqProt.secondary_structure_fraction() # Helix, Turn, Sheet tuple
@@ -115,9 +118,11 @@ def computeProperties(sequences,positive=True):
 def computeSVM(df):
     X = df.iloc[:, 1:].values
     y = df.loc[:,"Class"].values
+    plt_SVM.make_plot(X,y)
     #print(X)
     clf = svm.SVC(gamma='scale')
     clf.fit(X, y)
+    print(clf.score(X,y))
     return clf
 #==================== MAIN =====================================#
 
@@ -125,7 +130,7 @@ def computeSVM(df):
 trueFasta = Fasta()
 falseFasta = Fasta()
 trueFasta.readFasta("data/PSI_fasta.txt")
-falseFasta.readFasta("data/ribbonBeta.fasta")
+falseFasta.readFasta("data/negative.fasta")
 print(len(falseFasta.sequences))
 # Protein analysis
 properties = []
@@ -143,6 +148,7 @@ testData.to_csv('data/trainData.csv', index=False)
 print('\nData Saved in csv format in data dir')
 
 # Classifier
+print(testData.shape)
 clf = computeSVM(testData)
 print(clf.predict([[0.1383399209486166,0.08300395256916997,0.05533596837944664,5.59014892578125,0.33992094861660077,0.18181818181818182,0.37154150197628455,-0.026965230536659106]]))
 print(clf.predict([[0.017857142857142856,0.0,0.14285714285714285,4.93048095703125,0.1964285714285714,0.32142857142857145,0.17857142857142855,-0.5370134014039566]]))
