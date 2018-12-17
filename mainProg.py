@@ -1,74 +1,82 @@
+"""Machine learning program to predict a specific alpha protein structure : Horsehoe.
+
+This program is the main one, it uses two other modules retrieved from Scikit-Learn wich is cited here: 
+# Scikit-learn: Machine Learning in Python, Pedregosa et al., JMLR 12, pp. 2825-2830, 2011.
+
+The references of the two module to help to make a choice with the hyperparameters : 
+# plt_SVM : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
+# hyperParam : https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_digits.html#sphx-glr-auto-examples-model-selection-plot-grid-search-digits-py
+
+We used the SVM (Support Vector Machine) algortithm to train our classifier and to try to predict 
+if a protein has a Horsehoe secondary structure or not from the proteic sequence.
+
+There's different steps in this program : 
+1. Reading the sequences from two fasta files (one with positive label and the other one with negative label)
+2. Preparing a dataframe (pandas) to store all the properties computed by a specific function
+3. Preprocessing the datasets with a classical standardization, to avoid outliers and difficulties with SVM
+4. Training the classifier and make some predictions (iteration : 3, different scores available)
+
+We won't confirm the accuraccy of our results. Our current knowledge and the help
+from Scikit-Learn API and documentation made this project possible.
+"""
 #=======================
 #       Authors
 #       S. G.CLARO
-#       12/06/2018
+#       F. JUNG
+#       L. DE OLIVEIRA
+#       12/17/2018
 #=======================
 
-#-----------------------------
-#       IMPORT 
-#-----------------------------
+#=======================
+#       Imports
+#=======================
+# import from BioPython
 from Bio import SeqIO
 from Bio import SearchIO
 from Bio.Seq import Seq
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
+
+#import from pandas
 import pandas as pd
-import matplotlib.pyplot as plt
+
+#import from Scikit-learn (sklearn)
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn import svm
 
+#import from two modules from Scikit-learn
+# plt_SVM : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
+# hyperParam : https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_digits.html#sphx-glr-auto-examples-model-selection-plot-grid-search-digits-py
 import plot_clf as plt_SVM
 import hyperParam as hyp
-
-
-#import hydroTest as hydro
-#==================== Class =====================================#
-class Fasta:
-    
-    def __init__(self):
-        self.sequences = []
-        self.mean = 0
-        self.filterSeq = []
-        
-    # @property
-    # def sequence(self):
-    #     return self.sequence
-    
-    # @sequence.setter
-    # def sequence(self, sequence):
-    #     self.sequence = sequence
-
-    def readFasta(self,name):
-        with open(name, "rU") as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                self.sequences.append(record)
-        return print("Data loaded !\n")
-
-    def writeFasta(self,name):
-        with open(name, "w") as output_handle:
-            SeqIO.write(self.sequences, output_handle, "PSI_fasta.txt")
-        print("Data saved in : {} \n".format(name))
-        return 0
-
-    # def meanLen(self):
-    #     sumLen = 0
-    #     for sequence in self.sequences:
-    #         sumLen += len(sequence.seq)
-    #     self.meanSeq = sumLen/len(self.sequences)
-
-    # def filterLen(self):
-    #     for sequence in self.sequences:
-    #         if(len(sequence.seq) >= self.meanSeq):
-    #             self.filterSeq.append(sequence)
-    #         else:
-    #             continue
-    #     return print("Sequences filtered !\n")
 
 #=======================
 #       Functions
 #=======================
+
+def readFasta(sequences, name):
+    """Function to read fasta file format.
+    
+    Arguments : 
+    sequences -- a list to save sequences from a fasta.
+    name -- name of the file to read in. 
+    """
+    with open(name, "rU") as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            sequences.append(record)
+    return print("Data loaded !\n")
+
 # Make properties for csv table
 def computeProperties(sequences,positive=True):
+    """Function to compute proteins properties from a proteic sequence.
+    
+    Arguments :
+    sequences -- a list with sequences from a fasta.
+    positive -- parameter to check if we're working with true labels or not (default True)
+
+    Return :
+    table -- a dictionary with features as keys and their respective values
+    """
     # Init table and vectors 
     table = {}
     listLeucine = []
@@ -119,6 +127,14 @@ def computeProperties(sequences,positive=True):
         return table
 
 def computeSVM(df):
+    """Function to make a pipeline from preprocessing the data to train the classifier, and make predictions.
+    
+    Argument :
+    df -- a pandas dataframe, it permits afterward to retrieve numpys array
+
+    Return :
+    clf -- the trained SVM classifier
+    """
     # Get Numpy arrays from panda dataFrame
     # X : for features values
     # y : for labels values (length of arrays)
@@ -163,37 +179,36 @@ def computeSVM(df):
         print("True labels of X_test : \n", y_test)
         print("\n")
         print("#########################################################\n")
-    #return clf
+    return clf
 
-#==================== MAIN =====================================#
+#=======================
+#       Main
+#=======================
 
 # Read Fasta sequences
-trueFasta = Fasta()
-falseFasta = Fasta()
-trueFasta.readFasta("data/PSI_fasta.txt")
-falseFasta.readFasta("data/negative.fasta")
-print(len(falseFasta.sequences))
+positiveLabel = []
+negativeLabel = []
+readFasta(positiveLabel,"data/PSI_fasta.txt")
+readFasta(negativeLabel,"data/negative.fasta")
+print(len(positiveLabel))
+print(len(negativeLabel))
+
 # Protein analysis
 properties = []
-propertiesTrue = computeProperties(trueFasta.sequences)
-propertiesFalse = computeProperties(falseFasta.sequences, positive=False)
+propertiesTrue = computeProperties(positiveLabel)
+propertiesFalse = computeProperties(negativeLabel, positive=False)
+print(len(propertiesTrue))
 print(len(propertiesFalse))
 # print(properties)
 
 # Write csv training dataset
-trueData = pd.DataFrame(propertiesTrue)
+trueData = pd.DataFrame(propertiesTrue) # create a dataframe with panda
 falseData = pd.DataFrame(propertiesFalse)
-frames = [trueData,falseData]
+frames = [trueData,falseData] # process to concatenate the two df : True and False
 testData = pd.concat(frames)
-testData.to_csv('data/trainData.csv', index=False)
+testData.to_csv('data/trainData.csv', index=False) # save the data in a csv format file
 print('\nData Saved in csv format in data dir')
 
 # Classifier
-print(testData.shape)
-computeSVM(testData)
-
-
-# print(len(sequences))
-# print(len(sequences[0].seq))
-# print(meanLen(sequences))
-# print(len(filterLen(sequences)))
+print(testData.shape) # get the shape of the df (return : (numElement, numFeatures))
+clf = computeSVM(testData)
