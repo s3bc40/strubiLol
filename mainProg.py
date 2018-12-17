@@ -146,11 +146,11 @@ def computeSVM(df):
     
     for iterate in range(3):
         X_train, X_test, y_train, y_test = train_test_split( \
-        X_scale, y, test_size=0.4, random_state=None)
+        X_scale, y, test_size=0.4, random_state=None) # randomize by np.random function
 
         # Train the classifier with optimal hyperparameters
         clf.fit(X_train, y_train)
-        print("========= Iteration %i"% iterate+1)
+        print("========= Iteration ", iterate+1)
         print("#########################################################\n")
         #print("SVC used : \n", clf)
         #print("\n")
