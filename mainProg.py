@@ -162,7 +162,7 @@ def computeSVM(df):
     
     for iterate in range(3):
         X_train, X_test, y_train, y_test = train_test_split( \
-        X_scale, y, test_size=0.4, random_state=None) # randomize by np.random function
+        X_scale, y, test_size=0.50, random_state=None) # randomize by np.random function
 
         # Train the classifier with optimal hyperparameters
         clf.fit(X_train, y_train)
@@ -174,9 +174,15 @@ def computeSVM(df):
         print("\n")
         #print("Train X dataset : \n", X_train)
         #print("\n")
+        print("Length X_test : ", len(X_test))
         print("Prediction on X_test : \n", clf.predict(X_test))
         print("\n")
         print("True labels of X_test : \n", y_test)
+        print("\n")
+        sim = []
+        for i in range(len(y_test)):
+            sim.append(True if y_test[i] == clf.predict(X_test)[i] else False)
+        print("Check Similarity : \n", sim )
         print("\n")
         print("#########################################################\n")
     return clf
