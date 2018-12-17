@@ -113,4 +113,5 @@ def make_plot(X,y):
         ax.set_yticks(())
         ax.set_title(title)
 
-    plt.show()
+    #plt.show()
+    plt.savefig('svm.png', bbox_inches = 'tight')
