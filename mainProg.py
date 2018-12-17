@@ -13,9 +13,12 @@ from Bio.Seq import Seq
 from Bio.SeqUtils.ProtParam import ProteinAnalysis
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from sklearn import svm
 
-import plot_iris as plt_SVM
+import plot_clf as plt_SVM
+import hyperParam as hyp
 
 
 #import hydroTest as hydro
@@ -116,14 +119,52 @@ def computeProperties(sequences,positive=True):
         return table
 
 def computeSVM(df):
+    # Get Numpy arrays from panda dataFrame
+    # X : for features values
+    # y : for labels values (length of arrays)
     X = df.iloc[:, 1:].values
     y = df.loc[:,"Class"].values
-    plt_SVM.make_plot(X,y)
-    #print(X)
-    clf = svm.SVC(gamma='scale')
-    clf.fit(X, y)
-    print(clf.score(X,y))
-    return clf
+
+    # Preprocessing the data by standardization 
+    # SantadardScaler : (value-mean)/ standard_deviation
+    scaler = StandardScaler().fit(X)
+    X_scale = scaler.transform(X)
+
+    # From scikit learn script : plot different SVC 
+    plt_SVM.make_plot(X_scale,y)
+
+    # Tweaking hyperparameters to get the best score 
+    # Warning about overfitting, need to check the score to chose the more relevant one
+    hyp.test_param(X_scale,y)
+
+    # Defin the SVM Classifier with the relevant hyperparameters
+    clf = svm.SVC(kernel = "rbf",C=1, gamma=0.01)
+
+    #Splitting the dataset in 4 different sets :
+    # - 2 for training (0.75)
+    # - 2 for testing (0.25)
+    
+    for iterate in range(3):
+        X_train, X_test, y_train, y_test = train_test_split( \
+        X_scale, y, test_size=0.4, random_state=None)
+
+        # Train the classifier with optimal hyperparameters
+        clf.fit(X_train, y_train)
+        print("========= Iteration %i"% iterate+1)
+        print("#########################################################\n")
+        #print("SVC used : \n", clf)
+        #print("\n")
+        print("Score : ", clf.score(X_train,y_train)) # get the score from classifier
+        print("\n")
+        #print("Train X dataset : \n", X_train)
+        #print("\n")
+        print("Prediction on X_test : \n", clf.predict(X_test))
+        print("\n")
+        print("True labels of X_test : \n", y_test)
+        print("\n")
+        print("#########################################################\n")
+    #return clf
+
 #==================== MAIN =====================================#
 
 # Read Fasta sequences
@@ -149,10 +190,8 @@ print('\nData Saved in csv format in data dir')
 
 # Classifier
 print(testData.shape)
-clf = computeSVM(testData)
-print(clf.predict([[0.1383399209486166,0.08300395256916997,0.05533596837944664,5.59014892578125,0.33992094861660077,0.18181818181818182,0.37154150197628455,-0.026965230536659106]]))
-print(clf.predict([[0.017857142857142856,0.0,0.14285714285714285,4.93048095703125,0.1964285714285714,0.32142857142857145,0.17857142857142855,-0.5370134014039566]]))
-print(clf.predict([[0.022727272727272728,0.045454545454545456,0.2272727272727273,9.00665283203125,0.3181818181818182,0.22727272727272727,0.13636363636363635,-0.3977249224405377]]))
+computeSVM(testData)
+
 
 # print(len(sequences))
 # print(len(sequences[0].seq))
