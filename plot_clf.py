@@ -1,3 +1,9 @@
+#==================
+#       Modified
+#       S. G.CLARO
+#       12/18/2018
+# Source : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
+#==================
 """
 ==================================================
 Plot different SVM classifiers in the iris dataset
@@ -33,8 +39,11 @@ kernel and its parameters.
    more realistic high-dimensional problems.
 
 """
-print(__doc__)
 
+#=================
+#       Modified
+#       S. G.CLARO
+#=================
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm, datasets
