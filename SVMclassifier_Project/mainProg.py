@@ -47,8 +47,8 @@ from sklearn import svm
 #import from two modules from Scikit-learn
 # plt_SVM : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
 # hyperParam : https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_digits.html#sphx-glr-auto-examples-model-selection-plot-grid-search-digits-py
-import plot_clf as plt_SVM
-import hyperParam as hyp
+#import plot_clf as plt_SVM
+#import hyperParam as hyp
 
 #=======================
 #       Functions
