@@ -121,6 +121,9 @@ def make_plot(X,y):
         ax.set_xticks(())
         ax.set_yticks(())
         ax.set_title(title)
-
-    #plt.show()
     plt.savefig('svm.png', bbox_inches = 'tight')
+
+def plot_result_dico(dic):
+    plt.bar(range(len(dic)), list(dic.values()), align='center')
+    plt.xticks(range(len(dic)), list(dic.keys()))
+    plt.savefig('result.png', bbox_inches = 'tight')

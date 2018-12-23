@@ -47,8 +47,8 @@ from sklearn import svm
 #import from two modules from Scikit-learn
 # plt_SVM : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
 # hyperParam : https://scikit-learn.org/stable/auto_examples/model_selection/plot_grid_search_digits.html#sphx-glr-auto-examples-model-selection-plot-grid-search-digits-py
-import plot_clf as plt_SVM
-import hyperParam as hyp
+#import plot_clf as plt_SVM
+#import hyperParam as hyp
 
 #=======================
 #       Functions
@@ -159,7 +159,6 @@ def computeSVM(df):
     #Splitting the dataset in 4 different sets :
     # - 2 for training (0.60)
     # - 2 for testing (0.40)
-    
     for iterate in range(3):
         X_train, X_test, y_train, y_test = train_test_split( \
         X_scale, y, test_size=0.25, random_state=None) # randomize by np.random function
@@ -179,12 +178,19 @@ def computeSVM(df):
         print("\n")
         print("True labels of X_test : \n", y_test)
         print("\n")
-        sim = []
+        sim = {"Positive" : 0, "Negative" : 0 , "Error" : 0}
         for i in range(len(y_test)):
-            sim.append(True if y_test[i] == clf.predict(X_test)[i] else False)
+            if y_test[i] == clf.predict(X_test)[i]:
+                if clf.predict(X_test)[i] == 0:
+                    sim["Negative"] += 1
+                else:
+                    sim["Positive"] += 1
+            else:
+                sim["Error"] += 1
         print("Check Similarity : \n", sim )
         print("\n")
         print("#########################################################\n")
+        #plt_SVM.plot_result_dico(sim)
     return clf
 
 #=======================
@@ -196,8 +202,6 @@ positiveLabel = []
 negativeLabel = []
 readFasta(positiveLabel,"data/PSI_fasta.txt")
 readFasta(negativeLabel,"data/negative.fasta")
-print(len(positiveLabel))
-print(len(negativeLabel))
 
 # Protein analysis
 properties = []
