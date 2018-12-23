@@ -43,6 +43,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn import svm
+from sklearn.model_selection import cross_val_score
 
 #import from two modules from Scikit-learn
 # plt_SVM : https://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
@@ -169,7 +170,7 @@ def computeSVM(df):
         print("#########################################################\n")
         #print("SVC used : \n", clf)
         #print("\n")
-        print("Score : ", clf.score(X_train,y_train)) # get the score from classifier
+        print("Score : ", clf.score(X_test,y_test)) # get the score from classifier
         print("\n")
         #print("Train X dataset : \n", X_train)
         #print("\n")
